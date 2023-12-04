@@ -1,4 +1,6 @@
 {
-  "material-icon-theme.activeIconPack": "nest",
-  "material-icon-theme.files.associations": {}
+    "material-icon-theme.activeIconPack": "nest",
+    "material-icon-theme.files.associations": {
+        "dto": "Typescript"
+    }
 }
