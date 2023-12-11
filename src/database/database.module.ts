@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Course } from 'src/courses/entity/courses.entity';
+import { Tag } from 'src/courses/entity/tags.entity';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { Course } from 'src/courses/entity/courses.entity';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
-      entities: [Course],
+      entities: [Course, Tag],
       synchronize: true,
     }),
   ],
