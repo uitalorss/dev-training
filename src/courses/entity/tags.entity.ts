@@ -3,8 +3,8 @@ import { Course } from './courses.entity';
 
 @Entity('tags')
 export class Tag {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'text' })
   description: string;

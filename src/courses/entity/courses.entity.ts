@@ -1,20 +1,26 @@
+import { Tag } from './tags.entity';
 import {
-  Column,
   Entity,
+  Column,
   JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
 } from 'typeorm';
-import { Tag } from './tags.entity';
 
 @Entity('courses')
 export class Course {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
   @Column({ type: 'text' })
   name: string;
+
   @Column({ type: 'text' })
   description: string;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  created_at: Date;
 
   @ManyToMany(() => Tag, (tag) => tag.course, {
     cascade: true,

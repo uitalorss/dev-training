@@ -22,7 +22,7 @@ export class CoursesService {
     return courses;
   }
 
-  public async findOne(id: number) {
+  public async findOne(id: string) {
     const course = await this.courseRepository.findOneBy({ id });
     if (!course) {
       throw new NotFoundException('Curso não encontrado');
@@ -43,7 +43,7 @@ export class CoursesService {
     return await this.courseRepository.save(course);
   }
 
-  public async update(id: number, updateCourseDTO: UpdateCourseDTO) {
+  public async update(id: string, updateCourseDTO: UpdateCourseDTO) {
     const tags =
       updateCourseDTO.tags &&
       (await Promise.all(
@@ -52,7 +52,6 @@ export class CoursesService {
         })
       ));
     const course = await this.courseRepository.preload({
-      id,
       ...updateCourseDTO,
       tags,
     });
@@ -62,7 +61,7 @@ export class CoursesService {
     return await this.courseRepository.save(course);
   }
 
-  public async remove(id: number) {
+  public async remove(id: string) {
     const course = await this.courseRepository.findOneBy({ id });
     if (!course) {
       throw new NotFoundException('Curso não encontrado');

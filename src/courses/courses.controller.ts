@@ -23,7 +23,7 @@ export class CoursesController {
   }
 
   @Get(':id')
-  public async findOne(@Param('id') id: number) {
+  public async findOne(@Param('id') id: string) {
     const course = await this.coursesService.findOne(id);
     return course;
   }
@@ -37,7 +37,7 @@ export class CoursesController {
   @Put(':id')
   public async update(
     @Res() res,
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateCourseDTO: UpdateCourseDTO
   ) {
     await this.coursesService.update(id, updateCourseDTO);
@@ -45,7 +45,7 @@ export class CoursesController {
   }
 
   @Delete(':id')
-  public async delete(@Res() res, @Param('id') id: number) {
+  public async delete(@Res() res, @Param('id') id: string) {
     await this.coursesService.remove(id);
     return res.status(204).send();
   }
