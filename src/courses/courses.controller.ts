@@ -1,13 +1,13 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Post,
-    Put,
-    Res,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Res,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDTO } from './dto/CreateCourseDTO';
@@ -15,38 +15,38 @@ import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
 
 @Controller('courses')
 export class CoursesController {
-    constructor(private readonly coursesService: CoursesService) {}
-    @Get()
-    findAll(@Res() res): string {
-        const users = this.coursesService.findAll();
-        return res.status(200).json(users);
-    }
+  constructor(private readonly coursesService: CoursesService) {}
+  @Get()
+  public async findAll(@Res() res) {
+    const users = await this.coursesService.findAll();
+    return res.status(200).json(users);
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id: number) {
-        const course = this.coursesService.findOne(id);
-        return course;
-    }
+  @Get(':id')
+  public async findOne(@Param('id') id: number) {
+    const course = await this.coursesService.findOne(id);
+    return course;
+  }
 
-    @HttpCode(201)
-    @Post()
-    create(@Res() res, @Body() createCourseDTO: CreateCourseDTO) {
-        this.coursesService.create(createCourseDTO);
-        return res.status(201).json({ message: 'Curso criado com sucesso' });
-    }
-    @Put(':id')
-    update(
-        @Res() res,
-        @Param('id') id: number,
-        @Body() updateCourseDTO: UpdateCourseDTO
-    ) {
-        this.coursesService.update(id, updateCourseDTO);
-        return res.status(204).send();
-    }
+  @HttpCode(201)
+  @Post()
+  public async create(@Res() res, @Body() body: CreateCourseDTO) {
+    await this.coursesService.create(body);
+    return res.status(201).json({ message: 'Curso criado com sucesso' });
+  }
+  @Put(':id')
+  public async update(
+    @Res() res,
+    @Param('id') id: number,
+    @Body() updateCourseDTO: UpdateCourseDTO
+  ) {
+    await this.coursesService.update(id, updateCourseDTO);
+    return res.status(204).send();
+  }
 
-    @Delete(':id')
-    delete(@Res() res, @Param('id') id: number) {
-        this.coursesService.remove(id);
-        return res.status(204).send();
-    }
+  @Delete(':id')
+  public async delete(@Res() res, @Param('id') id: number) {
+    await this.coursesService.remove(id);
+    return res.status(204).send();
+  }
 }

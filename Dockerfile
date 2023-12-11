@@ -1,11 +1,3 @@
-FROM node:alpine3.18
+FROM postgres
 
-WORKDIR /app
-
-COPY . .
-
-RUN npm install
-
-EXPOSE 3000
-
-CMD [ "npm", "run", "start:dev" ]
+RUN usermod -u 1000 postgres
