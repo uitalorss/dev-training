@@ -8,12 +8,10 @@ import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
 
 @Injectable()
 export class CoursesService {
-  constructor(
-    @InjectRepository(Course)
-    private courseRepository: Repository<Course>,
-    @InjectRepository(Tag)
-    private tagRepository: Repository<Tag>
-  ) {}
+  @InjectRepository(Course)
+  private courseRepository: Repository<Course>;
+  @InjectRepository(Tag)
+  private tagRepository: Repository<Tag>;
 
   public async findAll() {
     const courses = await this.courseRepository.find({
@@ -66,7 +64,7 @@ export class CoursesService {
     if (!course) {
       throw new NotFoundException('Curso não encontrado');
     }
-    this.courseRepository.remove(course);
+    await this.courseRepository.remove(course);
   }
 
   private async createOrLoadTagByName(name: string) {
