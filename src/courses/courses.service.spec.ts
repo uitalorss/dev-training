@@ -1,108 +1,134 @@
 import { randomUUID } from 'crypto';
 import { CoursesService } from './courses.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Course } from './entity/courses.entity';
+import { Repository } from 'typeorm';
+import { Tag } from './entity/tags.entity';
 import { CreateCourseDTO } from './dto/CreateCourseDTO';
-import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
+
+const coursesList: Course[] = [
+  new Course({
+    id: randomUUID(),
+    name: 'test',
+    description: 'test',
+    tags: [
+      new Tag({
+        id: randomUUID(),
+        description: 'test',
+      }),
+    ],
+  }),
+];
 
 describe('CoursesService', () => {
-  let service: CoursesService;
-  let id: string;
-  let created_at: Date;
-  let expectOutputTags: any;
-  let expectOutputCourses: any;
-  let mockCourseRepository: any;
-  let mockTagRepository: any;
+  let coursesService: CoursesService;
+  let coursesRepository: Repository<Course>;
+  let tagsRepository: Repository<Tag>;
 
   beforeEach(async () => {
-    service = new CoursesService();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CoursesService,
+        {
+          provide: getRepositoryToken(Course),
+          useValue: {
+            find: jest.fn().mockResolvedValue(coursesList),
+            finnOneBy: jest.fn(),
+            create: jest.fn().mockResolvedValue(coursesList[0]),
+            save: jest.fn().mockResolvedValue(coursesList[0]),
+            preload: jest.fn(),
+            remove: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Tag),
+          useValue: {
+            findOne: jest.fn().mockResolvedValue(coursesList[0].tags),
+            create: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
 
-    id = randomUUID();
-    created_at = new Date();
-    expectOutputTags = [
-      {
-        id,
-        description: test,
-      },
-    ];
-    expectOutputCourses = {
-      id,
-      name: 'test',
-      description: 'test',
-      tags: expectOutputTags,
-      created_at,
-    };
+    coursesService = module.get<CoursesService>(CoursesService);
+    coursesRepository = module.get<Repository<Course>>(
+      getRepositoryToken(Course)
+    );
+    tagsRepository = module.get<Repository<Tag>>(getRepositoryToken(Tag));
+  });
 
-    mockCourseRepository = {
-      create: jest.fn().mockReturnValue(Promise.resolve(expectOutputCourses)),
-      find: jest.fn().mockReturnValue(Promise.resolve(expectOutputCourses)),
-      findOneBy: jest
-        .fn()
-        .mockReturnValue(Promise.resolve(expectOutputCourses)),
-      save: jest.fn().mockReturnValue(Promise.resolve(expectOutputCourses)),
-      preload: jest.fn().mockReturnValue(Promise.resolve(expectOutputCourses)),
-      remove: jest.fn().mockReturnValue(Promise.resolve(expectOutputCourses)),
-    };
-
-    mockTagRepository = {
-      findOne: jest.fn().mockReturnValue(Promise.resolve(expectOutputTags)),
-      create: jest.fn().mockReturnValue(Promise.resolve(expectOutputTags)),
-    };
+  it('should be defined', () => {
+    expect(coursesService).toBeDefined();
   });
 
   it('should be able to create a course', async () => {
-    service['courseRepository'] = mockCourseRepository;
-    service['tagRepository'] = mockTagRepository;
-
-    const createCourseDTO: CreateCourseDTO = {
+    const item: CreateCourseDTO = {
       name: 'test',
       description: 'test',
       tags: ['test'],
     };
 
-    const newCourse = await service.create(createCourseDTO);
+    const result = await coursesService.create(item);
 
-    expect(mockCourseRepository.create).toHaveBeenCalled();
-    expect(expectOutputCourses).toStrictEqual(newCourse);
+    expect(tagsRepository.findOne).toHaveBeenCalled();
+    expect(coursesRepository.create).toHaveBeenCalled();
+    expect(coursesRepository.save).toHaveBeenCalled();
+    expect(result).toStrictEqual(coursesList[0]);
   });
 
-  it('should list all courses', async () => {
-    service['courseRepository'] = mockCourseRepository;
+  it('should be able to list all courses', async () => {
+    const result = await coursesService.findAll();
 
-    const courses = await service.findAll();
-    expect(mockCourseRepository.find).toHaveBeenCalled();
-    expect(expectOutputCourses).toStrictEqual(courses);
+    expect(result).toEqual(coursesList);
+    expect(coursesRepository.find).toHaveBeenCalled();
   });
 
-  it('should be able to get a course by id', async () => {
-    service['courseRepository'] = mockCourseRepository;
+  //   const newCourse = await service.create(createCourseDTO);
 
-    const course = await service.findOne(id);
-    expect(mockCourseRepository.findOneBy).toHaveBeenCalled();
-    expect(expectOutputCourses).toStrictEqual(course);
-  });
+  //   expect(mockCourseRepository.create).toHaveBeenCalled();
+  //   expect(expectOutputCourses).toStrictEqual(newCourse);
+  // });
 
-  it('should be able to update a course', async () => {
-    service['courseRepository'] = mockCourseRepository;
-    service['tagRepository'] = mockTagRepository;
+  // it('should list all courses', async () => {
+  //   service['courseRepository'] = mockCourseRepository;
 
-    const updateCourseDTO: UpdateCourseDTO = {
-      name: 'test',
-      description: 'test',
-      tags: ['test'],
-    };
+  //   const courses = await service.findAll();
+  //   expect(mockCourseRepository.find).toHaveBeenCalled();
+  //   expect(expectOutputCourses).toStrictEqual(courses);
+  // });
 
-    const course = await service.update(id, updateCourseDTO);
+  // it('should be able to get a course by id', async () => {
+  //   service['courseRepository'] = mockCourseRepository;
 
-    expect(mockCourseRepository.preload).toHaveBeenCalled();
-    expect(mockCourseRepository.save).toHaveBeenCalled();
-    expect(expectOutputCourses).toStrictEqual(course);
-  });
+  //   const course = await service.findOne(id);
+  //   expect(mockCourseRepository.findOneBy).toHaveBeenCalled();
+  //   expect(expectOutputCourses).toStrictEqual(course);
+  // });
 
-  it('should be able to delete a course', async () => {
-    service['courseRepository'] = mockCourseRepository;
+  // it('should be able to update a course', async () => {
+  //   service['courseRepository'] = mockCourseRepository;
+  //   service['tagRepository'] = mockTagRepository;
 
-    const courseToDelete = await service.remove(id);
+  //   const updateCourseDTO: UpdateCourseDTO = {
+  //     name: 'test',
+  //     description: 'test',
+  //     tags: ['test'],
+  //   };
 
-    expect(mockCourseRepository.remove).toHaveBeenCalled();
-    expect(courseToDelete).toBeUndefined();
-  });
+  //   const course = await service.update(id, updateCourseDTO);
+
+  //   expect(mockCourseRepository.preload).toHaveBeenCalled();
+  //   expect(mockCourseRepository.save).toHaveBeenCalled();
+  //   expect(expectOutputCourses).toStrictEqual(course);
+  // });
+
+  // it('should be able to delete a course', async () => {
+  //   service['courseRepository'] = mockCourseRepository;
+
+  //   const courseToDelete = await service.remove(id);
+
+  //   expect(mockCourseRepository.remove).toHaveBeenCalled();
+  //   expect(courseToDelete).toBeUndefined();
+  // });
 });

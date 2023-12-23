@@ -11,4 +11,9 @@ export class Tag {
 
   @ManyToMany(() => Course, (course) => course.tags)
   course: Course[];
+
+  constructor(course?: Partial<Course>) {
+    this.id = course?.id;
+    this.description = course?.description;
+  }
 }

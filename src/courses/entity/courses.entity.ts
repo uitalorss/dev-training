@@ -27,4 +27,12 @@ export class Course {
   })
   @JoinTable()
   tags: Tag[];
+
+  constructor(course?: Partial<Course>) {
+    this.id = course?.id;
+    this.name = course?.name;
+    this.description = course?.description;
+    this.tags = course?.tags;
+    this.created_at = course?.created_at;
+  }
 }

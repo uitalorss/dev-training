@@ -8,10 +8,12 @@ import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
 
 @Injectable()
 export class CoursesService {
-  @InjectRepository(Course)
-  private courseRepository: Repository<Course>;
-  @InjectRepository(Tag)
-  private tagRepository: Repository<Tag>;
+  constructor(
+    @InjectRepository(Course)
+    private courseRepository: Repository<Course>,
+    @InjectRepository(Tag)
+    private tagRepository: Repository<Tag>
+  ) {}
 
   public async findAll() {
     const courses = await this.courseRepository.find({
