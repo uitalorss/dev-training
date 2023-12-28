@@ -35,7 +35,7 @@ describe('CoursesService', () => {
 
   const mockRepositoryTag = {
     findOne: jest.fn().mockReturnValue(mockCourse.tags),
-    create: jest.fn(),
+    create: jest.fn().mockReturnValue(mockCourse.tags),
   };
 
   beforeEach(async () => {
@@ -85,17 +85,26 @@ describe('CoursesService', () => {
   });
 
   describe('when creating a course', () => {
-    it('should be able to create it.', async () => {
-      const courseToCreate: CreateCourseDTO = {
-        name: 'test',
-        description: 'test',
-        tags: ['test'],
-      };
+    const courseToCreate: CreateCourseDTO = {
+      name: 'test',
+      description: 'test',
+      tags: ['test'],
+    };
 
+    it('should be able to create it.', async () => {
       const newCourse = await coursesService.create(courseToCreate);
+
       expect(mockRepositoryCourse.create).toHaveBeenCalled();
       expect(mockRepositoryTag.findOne).toHaveBeenCalled();
       expect(mockRepositoryCourse.save).toHaveBeenCalled();
+      expect(newCourse).toStrictEqual(mockCourse);
+    });
+
+    it('should be able to create a tag when does not exist', async () => {
+      jest.spyOn(mockRepositoryTag, 'findOne').mockReturnValueOnce(null);
+      const newCourse = await coursesService.create(courseToCreate);
+
+      expect(mockRepositoryTag.create).toHaveBeenCalled();
       expect(newCourse).toStrictEqual(mockCourse);
     });
   });
@@ -113,6 +122,31 @@ describe('CoursesService', () => {
       expect(mockRepositoryCourse.preload).toHaveBeenCalled();
       expect(mockRepositoryCourse.save).toHaveBeenCalled();
       expect(updateCourse).toStrictEqual(mockCourse);
+    });
+
+    it('should not be able to update a course if id does not exists', async () => {
+      jest.spyOn(mockRepositoryCourse, 'preload').mockReturnValueOnce(null);
+
+      await expect(
+        coursesService.update('123', courseToUpdate)
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('when deleting a course', () => {
+    it('should be able to delete a course', async () => {
+      const userToDelete = await coursesService.remove(id);
+
+      expect(mockRepositoryCourse.findOneBy).toHaveBeenCalled();
+      expect(mockRepositoryCourse.remove).toHaveBeenCalled();
+      expect(userToDelete).toBeUndefined();
+    });
+
+    it('should not be able if id does not exist', async () => {
+      jest.spyOn(mockRepositoryCourse, 'findOneBy').mockReturnValueOnce(null);
+
+      expect(mockRepositoryCourse.findOneBy).toHaveBeenCalled();
+      expect(coursesService.remove('123')).rejects.toThrow(NotFoundException);
     });
   });
 });
