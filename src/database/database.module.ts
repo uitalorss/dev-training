@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -12,7 +11,7 @@ import { Tag } from 'src/courses/entity/tags.entity';
         return {
           type: 'postgres',
           host: configService.get('DB_HOST'),
-          port: Number(configService.get('DB_PASS')),
+          port: Number(configService.get('DB_PORT')),
           username: configService.get('DB_USER'),
           password: configService.get('DB_PASS'),
           database: configService.get('DB_NAME'),

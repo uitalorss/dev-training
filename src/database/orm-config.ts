@@ -1,4 +1,4 @@
-import 'domain/config';
+import 'dotenv/config';
 import { Course } from 'src/courses/entity/courses.entity';
 import { Tag } from 'src/courses/entity/tags.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
