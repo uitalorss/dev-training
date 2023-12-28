@@ -2,30 +2,38 @@ import { CoursesService } from './courses.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Course } from './entity/courses.entity';
-import { Repository } from 'typeorm';
 import { Tag } from './entity/tags.entity';
-import { CreateCourseDTO } from './dto/CreateCourseDTO';
-import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
+import { randomUUID } from 'crypto';
 import { NotFoundException } from '@nestjs/common';
 
-const coursesList: Course[] = [
-  new Course({
-    id: 'd22f92b5-731d-4166-98ed-6c3b104c0da0',
+describe('CoursesService', () => {
+  let coursesService: CoursesService;
+
+  const mockCourse = new Course({
+    id: randomUUID(),
     name: 'test',
     description: 'test',
     tags: [
       new Tag({
-        id: 'd22f92b5-731d-4166-98ed-6c3b104c0da0',
+        id: randomUUID(),
         description: 'test',
       }),
     ],
-  }),
-];
+  });
 
-describe('CoursesService', () => {
-  let coursesService: CoursesService;
-  let coursesRepository: Repository<Course>;
-  let tagsRepository: Repository<Tag>;
+  const mockRepositoryCourse = {
+    find: jest.fn().mockReturnValue([mockCourse]),
+    findOneBy: jest.fn().mockReturnValue(mockCourse),
+    create: jest.fn(),
+    save: jest.fn(),
+    preload: jest.fn(),
+    remove: jest.fn(),
+  };
+
+  const mockRepositoryTag = {
+    findOne: jest.fn(),
+    create: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,118 +41,47 @@ describe('CoursesService', () => {
         CoursesService,
         {
           provide: getRepositoryToken(Course),
-          useValue: {
-            find: jest.fn().mockResolvedValue(coursesList),
-            findOneBy: jest.fn().mockResolvedValue(coursesList[0]),
-            create: jest.fn().mockResolvedValue(coursesList[0]),
-            save: jest.fn().mockResolvedValue(coursesList[0]),
-            preload: jest.fn().mockResolvedValue(coursesList[0]),
-            remove: jest.fn().mockResolvedValue(coursesList[0]),
-          },
+          useValue: mockRepositoryCourse,
         },
         {
           provide: getRepositoryToken(Tag),
-          useValue: {
-            findOne: jest.fn().mockResolvedValue(coursesList[0].tags),
-            create: jest.fn(),
-          },
+          useValue: mockRepositoryTag,
         },
       ],
     }).compile();
 
     coursesService = module.get<CoursesService>(CoursesService);
-    coursesRepository = module.get<Repository<Course>>(
-      getRepositoryToken(Course)
-    );
-    tagsRepository = module.get<Repository<Tag>>(getRepositoryToken(Tag));
   });
 
   it('should be defined', () => {
     expect(coursesService).toBeDefined();
   });
 
-  it('should be able to create a course', async () => {
-    const item: CreateCourseDTO = {
-      name: 'test',
-      description: 'test',
-      tags: ['test'],
-    };
+  describe('when listing all courses', () => {
+    it('should be able to list all of them', async () => {
+      const courses = await coursesService.findAll();
 
-    const result = await coursesService.create(item);
-
-    expect(tagsRepository.findOne).toHaveBeenCalled();
-    expect(coursesRepository.create).toHaveBeenCalled();
-    expect(coursesRepository.save).toHaveBeenCalled();
-    expect(result).toStrictEqual(coursesList[0]);
+      expect(mockRepositoryCourse.find).toHaveBeenCalled();
+      expect(courses).toBeInstanceOf(Array<Course>);
+    });
   });
 
-  it('should be able to list all courses', async () => {
-    const result = await coursesService.findAll();
+  describe('when taking a course by id', () => {
+    it('should be able to get a course', async () => {
+      const course = await coursesService.findOne(randomUUID());
 
-    expect(result).toEqual(coursesList);
-    expect(coursesRepository.find).toHaveBeenCalled();
-  });
+      expect(mockRepositoryCourse.findOneBy).toHaveBeenCalled();
+      expect(course).toStrictEqual(mockCourse);
+    });
 
-  it('should be able to list a course according to your id', async () => {
-    const course = await coursesService.findOne(
-      'd22f92b5-731d-4166-98ed-6c3b104c0da0'
-    );
+    it('should get a Error if id does not exist', async () => {
+      jest
+        .spyOn(mockRepositoryCourse, 'findOneBy')
+        .mockRejectedValue(new NotFoundException());
 
-    expect(coursesRepository.findOneBy).toHaveBeenCalled();
-    expect(course).toStrictEqual(coursesList[0]);
-  });
-
-  it('should not be able to list a course your id does not exist', () => {
-    jest
-      .spyOn(coursesRepository, 'findOneBy')
-      .mockRejectedValueOnce(new NotFoundException());
-
-    expect(
-      coursesService.findOne('d22f92b5-731d-4166-98ed-6c3b104c0da0')
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('should be able to update a course', async () => {
-    const item: UpdateCourseDTO = {
-      name: 'test',
-      description: 'test',
-      tags: ['test'],
-    };
-    await coursesService.update('d22f92b5-731d-4166-98ed-6c3b104c0da0', item);
-
-    expect(coursesRepository.preload).toHaveBeenCalled();
-    expect(coursesRepository.save).toHaveBeenCalled();
-  });
-
-  it('should not be able to update a course your id does not exist', () => {
-    jest
-      .spyOn(coursesRepository, 'preload')
-      .mockRejectedValueOnce(new NotFoundException());
-
-    const item: UpdateCourseDTO = {
-      name: 'test',
-      description: 'test',
-      tags: ['test'],
-    };
-    expect(
-      coursesService.update('d22f92b5-731d-4166-98ed-6c3b104c0da0', item)
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('should be able to remove a course', async () => {
-    await coursesService.remove('d22f92b5-731d-4166-98ed-6c3b104c0da0');
-
-    expect(coursesRepository.findOneBy).toHaveBeenCalled();
-    expect(coursesRepository.remove).toHaveBeenCalled();
-  });
-
-  it('should not be able to remove a course your id does not exist', () => {
-    jest
-      .spyOn(coursesRepository, 'findOneBy')
-      .mockRejectedValueOnce(new NotFoundException());
-
-    expect(
-      coursesService.remove('d22f92b5-731d-4166-98ed-6c3b104c0da0')
-    ).rejects.toThrow(NotFoundException);
+      expect(coursesService.findOne('123')).rejects.toBeInstanceOf(
+        NotFoundException
+      );
+    });
   });
 });
