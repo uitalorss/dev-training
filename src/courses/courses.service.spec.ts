@@ -5,17 +5,20 @@ import { Course } from './entity/courses.entity';
 import { Tag } from './entity/tags.entity';
 import { randomUUID } from 'crypto';
 import { NotFoundException } from '@nestjs/common';
+import { CreateCourseDTO } from './dto/CreateCourseDTO';
+import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
 
 describe('CoursesService', () => {
   let coursesService: CoursesService;
+  const id = randomUUID();
 
   const mockCourse = new Course({
-    id: randomUUID(),
+    id,
     name: 'test',
     description: 'test',
     tags: [
       new Tag({
-        id: randomUUID(),
+        id,
         description: 'test',
       }),
     ],
@@ -24,14 +27,14 @@ describe('CoursesService', () => {
   const mockRepositoryCourse = {
     find: jest.fn().mockReturnValue([mockCourse]),
     findOneBy: jest.fn().mockReturnValue(mockCourse),
-    create: jest.fn(),
-    save: jest.fn(),
-    preload: jest.fn(),
+    create: jest.fn().mockReturnValue(mockCourse),
+    save: jest.fn().mockReturnValue(mockCourse),
+    preload: jest.fn().mockReturnValue(mockCourse),
     remove: jest.fn(),
   };
 
   const mockRepositoryTag = {
-    findOne: jest.fn(),
+    findOne: jest.fn().mockReturnValue(mockCourse.tags),
     create: jest.fn(),
   };
 
@@ -75,13 +78,41 @@ describe('CoursesService', () => {
     });
 
     it('should get a Error if id does not exist', async () => {
-      jest
-        .spyOn(mockRepositoryCourse, 'findOneBy')
-        .mockRejectedValue(new NotFoundException());
+      jest.spyOn(mockRepositoryCourse, 'findOneBy').mockReturnValueOnce(null);
 
-      expect(coursesService.findOne('123')).rejects.toBeInstanceOf(
-        NotFoundException
-      );
+      expect(coursesService.findOne('123')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('when creating a course', () => {
+    it('should be able to create it.', async () => {
+      const courseToCreate: CreateCourseDTO = {
+        name: 'test',
+        description: 'test',
+        tags: ['test'],
+      };
+
+      const newCourse = await coursesService.create(courseToCreate);
+      expect(mockRepositoryCourse.create).toHaveBeenCalled();
+      expect(mockRepositoryTag.findOne).toHaveBeenCalled();
+      expect(mockRepositoryCourse.save).toHaveBeenCalled();
+      expect(newCourse).toStrictEqual(mockCourse);
+    });
+  });
+
+  describe('when updating a course', () => {
+    const courseToUpdate: UpdateCourseDTO = {
+      name: 'test',
+      description: 'test',
+      tags: ['test'],
+    };
+
+    it('should be able to update it', async () => {
+      const updateCourse = await coursesService.update(id, courseToUpdate);
+
+      expect(mockRepositoryCourse.preload).toHaveBeenCalled();
+      expect(mockRepositoryCourse.save).toHaveBeenCalled();
+      expect(updateCourse).toStrictEqual(mockCourse);
     });
   });
 });
