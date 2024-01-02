@@ -12,3 +12,13 @@ services:
     environment:
       - POSTGRES_PASSWORD=postgresql
       - POSTGRES_DB=devtraining
+
+  dbtest:
+    build: .
+    container_name: db-test
+    restart: always
+    ports:
+      - 5429:5432
+    environment:
+      - POSTGRES_PASSWORD=postgresql
+      - POSTGRES_DB=devtraining

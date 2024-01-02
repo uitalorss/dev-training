@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Course } from 'src/courses/entity/courses.entity';
-import { Tag } from 'src/courses/entity/tags.entity';
+import { Course } from '../courses/entity/courses.entity';
+import { Tag } from '../courses/entity/tags.entity';
 
 @Module({
   imports: [
