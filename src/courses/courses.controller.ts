@@ -34,6 +34,8 @@ export class CoursesController {
     await this.coursesService.create(body);
     return res.status(201).json({ message: 'Curso criado com sucesso' });
   }
+
+  @HttpCode(204)
   @Put(':id')
   public async update(
     @Res() res,

@@ -8,11 +8,13 @@ import { CoursesModule } from './courses.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import request from 'supertest';
+import { UpdateCourseDTO } from './dto/UpdateCourseDTO';
 
 describe('CoursesController', () => {
   let app: INestApplication;
   let module: TestingModule;
   let createCourseDTO: CreateCourseDTO;
+  let updateCourseDTO: UpdateCourseDTO;
   let courses: Course[];
 
   const dataSourceTest: DataSourceOptions = {
@@ -43,6 +45,13 @@ describe('CoursesController', () => {
       description: 'test',
       tags: ['test'],
     };
+
+    updateCourseDTO = {
+      name: 'correctTest',
+      description: 'test 2',
+      tags: ['test', 'another test'],
+    };
+
     await app.init();
   });
 
@@ -85,6 +94,28 @@ describe('CoursesController', () => {
         .expect(200);
 
       expect(res.body.id).toStrictEqual(courses[0].id);
+    });
+  });
+
+  describe('PUT /courses/:id', () => {
+    it('should be able to update a course', async () => {
+      const res = await request(app.getHttpServer())
+        .put(`/courses/${courses[0].id}`)
+        .send(updateCourseDTO)
+        .expect(204);
+
+      expect(res.body).toBeDefined();
+    });
+  });
+
+  describe('DELETE /courses/:id', () => {
+    it('should be able to delete a test', async () => {
+      const res = await request(app.getHttpServer())
+        .del(`/courses/${courses[0].id}`)
+        .send(courses[0].id)
+        .expect(204);
+
+      expect(res.body).toBeDefined();
     });
   });
 });
